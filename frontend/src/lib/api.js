@@ -7,7 +7,11 @@
  * re-implementing fetch plumbing.
  */
 
-const BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+// Strip any stray whitespace/newlines a dashboard paste may have introduced, and
+// drop trailing slashes. A URL never legitimately contains whitespace, so this is
+// safe and prevents an illegal-header / bad-URL fetch crash from a fat-fingered
+// env var. (See the matching guard in supabase.js.)
+const BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\s+/g, '').replace(/\/+$/, '');
 
 /** Set by AuthProvider whenever the session changes. */
 let tokenGetter = async () => null;

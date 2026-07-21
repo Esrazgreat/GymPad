@@ -12,8 +12,19 @@ import { createClient } from '@supabase/supabase-js';
  * sign-in so it still runs with no Supabase project.
  */
 
-const url = import.meta.env.VITE_SUPABASE_URL?.trim();
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
+// Defensive parsing of the env values.
+//
+// A very common deploy mistake is pasting a value into the hosting dashboard
+// with stray whitespace — or, as actually happened here, the whole key
+// duplicated across several lines. Neither a URL nor a JWT ever legitimately
+// contains whitespace, so we extract the FIRST clean occurrence. This turns a
+// bricking "Failed to execute 'fetch': Invalid value" error (an illegal newline
+// in the auth header) into a silent self-heal, instead of a blank sign-in page.
+const firstUrl = (v) => (v || '').match(/https?:\/\/[^\s"']+/)?.[0]?.replace(/\/+$/, '') ?? '';
+const firstJwt = (v) => (v || '').match(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/)?.[0] ?? '';
+
+const url = firstUrl(import.meta.env.VITE_SUPABASE_URL);
+const anonKey = firstJwt(import.meta.env.VITE_SUPABASE_ANON_KEY);
 
 export const supabaseEnabled = Boolean(url && anonKey);
 
