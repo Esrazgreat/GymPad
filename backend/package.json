@@ -1,0 +1,22 @@
+{
+  "name": "gympad-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "GymPad API — bilingual, AI-coached fitness for Ethiopia. 100% free.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0",
+    "@supabase/supabase-js": "^2.47.10",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}

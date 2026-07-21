@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>GymPad — 3D pose lab</title>
+    <style>
+      body { margin:0; background:#120A1F; color:#F5F0FF; font-family:system-ui; padding:16px; }
+      h1 { font-size:16px; margin:0 0 12px; }
+      .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:12px; }
+      .cell { border:1px solid rgba(255,255,255,.12); border-radius:14px; overflow:hidden; background:rgba(255,255,255,.05); }
+      .cell h2 { font-size:11px; margin:0; padding:8px 10px; color:#A79BC8; border-bottom:1px solid rgba(255,255,255,.08); }
+    </style>
+  </head>
+  <body>
+    <!--
+      Developer harness, not part of the app. Renders every 3D animation side by
+      side so a broken pose is obvious at a glance instead of being found by
+      clicking through a workout. Open /pose-lab.html with the dev server running.
+    -->
+    <h1>3D pose lab — every animation, one screen</h1>
+    <div class="grid" id="grid"></div>
+
+    <script type="module">
+      import React from 'react';
+      import { createRoot } from 'react-dom/client';
+      import Demo3D from '/src/components/Demo3D.jsx';
+
+      const ANIMS = [
+        'squat','chair_squat','pushup','lunge','plank','jack','run','climber','burpee',
+        'bridge','glute_bridge','crunch','benchPress','deadlift','barbellCurl',
+        'latPulldown','overheadPress','lateralRaise','calfRaise','legPress','pullup','barbellRow',
+      ];
+
+      const grid = document.getElementById('grid');
+      for (const anim of ANIMS) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        const title = document.createElement('h2');
+        title.textContent = anim;
+        const mount = document.createElement('div');
+        cell.append(title, mount);
+        grid.append(cell);
+        createRoot(mount).render(React.createElement(Demo3D, { animation: anim, height: 200 }));
+      }
+    </script>
+  </body>
+</html>

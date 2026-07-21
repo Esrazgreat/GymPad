@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#120A1F" />
+    <meta name="description" content="GymPad — your pocket gym. Free workout plans, AI coaching, in English and Amharic." />
+
+    <title>GymPad — ጂምፓድ</title>
+
+    <!--
+      Archivo for display type, Noto Sans Ethiopic for Amharic. Ethiopic must be
+      loaded up front, not lazily: the app can start in Amharic, and a font swap
+      on the very first paint is far more jarring in Ge'ez than in Latin script.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=Noto+Sans+Ethiopic:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

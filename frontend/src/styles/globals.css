@@ -1,0 +1,236 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   GymPad — "Neon Sunset"
+
+   Dark violet night sky with hot orange energy. Two rules keep it coherent:
+     1. The orange→gold gradient is reserved for progress and primary actions.
+        If everything glows, nothing reads as important.
+     2. Cards are frosted glass over a cinematic gradient, never flat panels.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --gp-bg: #120a1f;
+  --gp-bg2: #1b1030;
+  --gp-panel: rgba(255, 255, 255, 0.055);
+  --gp-panel-solid: #221540;
+  --gp-line: rgba(255, 255, 255, 0.12);
+  --gp-text: #f5f0ff;
+  --gp-dim: #a79bc8;
+  --gp-orange: #ff6b35;
+  --gp-gold: #ffc53d;
+  --gp-cyan: #35e0d0;
+
+  /* Safe areas for phones with a notch / gesture bar. */
+  --gp-safe-top: env(safe-area-inset-top, 0px);
+  --gp-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    color: var(--gp-text);
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    /* Two soft light sources — warm from top-right, cool from mid-left — over a
+       near-black violet. Fixed so it reads as a sky the content moves against. */
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(255, 107, 53, 0.18), transparent),
+      radial-gradient(900px 500px at -10% 30%, rgba(53, 224, 208, 0.1), transparent),
+      var(--gp-bg);
+    background-attachment: fixed;
+  }
+
+  /* Amharic gets its own face and slightly looser leading — Ge'ez glyphs are
+     taller and denser than Latin, and default line-height crowds them. */
+  :lang(am),
+  .lang-am {
+    font-family: 'Noto Sans Ethiopic', system-ui, sans-serif;
+    line-height: 1.7;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: Archivo, system-ui, sans-serif;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+
+  .lang-am h1, .lang-am h2, .lang-am h3, .lang-am .font-display {
+    font-family: 'Noto Sans Ethiopic', Archivo, system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  /* Visible keyboard focus everywhere — never remove it without a replacement. */
+  :focus-visible {
+    outline: 2px solid var(--gp-gold);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  ::selection {
+    background: rgba(255, 107, 53, 0.35);
+  }
+}
+
+@layer components {
+  /* ── Surfaces ──────────────────────────────────────────────────────────── */
+  .gp-card {
+    background: var(--gp-panel);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--gp-line);
+    border-radius: 18px;
+  }
+
+  .gp-card-solid {
+    background: var(--gp-panel-solid);
+    border: 1px solid var(--gp-line);
+    border-radius: 18px;
+  }
+
+  /* ── Buttons ───────────────────────────────────────────────────────────── */
+  .gp-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(90deg, var(--gp-orange), var(--gp-gold));
+    color: #1a0d08;
+    font-weight: 900;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 8px 30px rgba(255, 107, 53, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+    /* Comfortable thumb target on every button, everywhere. */
+    min-height: 48px;
+  }
+  .gp-btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.05); }
+  .gp-btn:active:not(:disabled) { transform: translateY(1px) scale(0.99); }
+  .gp-btn:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+
+  .gp-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    border-radius: 12px;
+    background: transparent;
+    border: 1px solid var(--gp-line);
+    color: var(--gp-text);
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 48px;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .gp-ghost:hover:not(:disabled) { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.24); }
+  .gp-ghost:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .gp-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid var(--gp-line);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--gp-dim);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-height: 40px;
+  }
+  .gp-chip[aria-pressed='true'],
+  .gp-chip.is-active {
+    background: linear-gradient(90deg, rgba(255, 107, 53, 0.22), rgba(255, 197, 61, 0.18));
+    border-color: rgba(255, 107, 53, 0.55);
+    color: var(--gp-text);
+  }
+
+  /* ── Form controls ─────────────────────────────────────────────────────── */
+  .gp-input {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--gp-line);
+    color: var(--gp-text);
+    font-size: 1rem;
+    min-height: 48px;
+  }
+  .gp-input::placeholder { color: rgba(167, 155, 200, 0.6); }
+  .gp-input:focus { border-color: rgba(255, 107, 53, 0.6); outline: none; }
+
+  .gp-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gp-dim);
+    margin-bottom: 0.5rem;
+  }
+
+  /* ── Numerics ──────────────────────────────────────────────────────────── */
+  /* Tabular figures stop the layout jittering as a timer counts down. */
+  .gp-num {
+    font-family: Archivo, system-ui, sans-serif;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.03em;
+  }
+
+  .gp-gradient-text {
+    background: linear-gradient(90deg, var(--gp-orange), var(--gp-gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* ── Layout ────────────────────────────────────────────────────────────── */
+  .gp-shell {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: calc(var(--gp-safe-top) + 1rem) 1rem calc(var(--gp-safe-bottom) + 6rem);
+  }
+  @media (min-width: 900px) {
+    .gp-shell { max-width: 900px; }
+  }
+
+  .gp-skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s linear infinite;
+    border-radius: 12px;
+  }
+}
+
+@layer utilities {
+  .gp-hide-scroll::-webkit-scrollbar { display: none; }
+  .gp-hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* Respect the OS "reduce motion" setting. The 3D athlete checks this too and
+   renders a single static pose instead of animating. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
