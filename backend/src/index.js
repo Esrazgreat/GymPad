@@ -15,9 +15,27 @@ const app = express();
 // proxy's address and the rate limiter would bucket every user together.
 app.set('trust proxy', 1);
 
+// CORS allow-list. We accept the explicitly-configured frontend URL, local dev,
+// and any *.vercel.app deployment of this app. The Vercel pattern is what avoids
+// the classic deploy deadlock — the frontend and backend would otherwise each
+// need the other's URL before either could be deployed. Auth is a Bearer token
+// (not a cookie), so trusting Vercel's origin here carries no CSRF risk.
+const staticOrigins = new Set([
+  config.frontendUrl,
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+]);
+
 app.use(
   cors({
-    origin: [config.frontendUrl, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+    origin(origin, callback) {
+      // No Origin header = a non-browser caller (curl, uptime pings, health
+      // checks). Always allow those; CORS only governs browsers.
+      if (!origin) return callback(null, true);
+      if (staticOrigins.has(origin)) return callback(null, true);
+      if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) return callback(null, true);
+      return callback(null, false);
+    },
     credentials: true,
   }),
 );
