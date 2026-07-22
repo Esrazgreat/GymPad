@@ -19,9 +19,32 @@
       href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=Noto+Sans+Ethiopic:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
+
+    <!--
+      Critical inline styles. The Tailwind bundle loads with the JS, so without
+      this the page paints WHITE for a moment on every load before the dark theme
+      arrives — jarring on a dark app. Setting the background here, plus a splash
+      spinner inside #root (which React replaces on mount), means the very first
+      paint is already on-brand and shows motion, so a slow network reads as
+      "loading" rather than "broken".
+    -->
+    <style>
+      html, body { margin: 0; background: #120a1f; color: #f5f0ff; }
+      #gp-splash {
+        position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+        background: radial-gradient(1000px 500px at 80% -10%, rgba(255,107,53,0.16), transparent), #120a1f;
+      }
+      #gp-splash .ring {
+        width: 42px; height: 42px; border-radius: 50%;
+        border: 3px solid rgba(255,255,255,0.12); border-top-color: #ff6b35;
+        animation: gp-spin 0.8s linear infinite;
+      }
+      @keyframes gp-spin { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) { #gp-splash .ring { animation: none; } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div id="gp-splash"><div class="ring"></div></div></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

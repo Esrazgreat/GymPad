@@ -7,6 +7,7 @@ import Header from '../components/Header.jsx';
 import BigStat from '../components/BigStat.jsx';
 import { useI18n } from '../i18n/index.jsx';
 import { api } from '../lib/api.js';
+import { cacheGet, cacheSet } from '../lib/cache.js';
 
 /**
  * Progress.
@@ -51,13 +52,19 @@ function ChartTooltip({ active, payload, label, suffix }) {
 
 export default function Progress() {
   const { t, tList } = useI18n();
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Render the charts instantly from cache, then revalidate — no spinner on a
+  // return visit, even if the backend is cold.
+  const cached = cacheGet('progress');
+  const [data, setData] = useState(cached);
+  const [loading, setLoading] = useState(!cached);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     api.progress()
-      .then(setData)
+      .then((p) => {
+        setData(p);
+        cacheSet('progress', p);
+      })
       .catch((err) => setError(err))
       .finally(() => setLoading(false));
   }, []);
@@ -75,7 +82,8 @@ export default function Progress() {
     );
   }
 
-  if (error) {
+  // Only surface the error screen when we have nothing cached to show.
+  if (error && !data) {
     return (
       <main className="gp-shell">
         <Header title={t('progress.title')} />

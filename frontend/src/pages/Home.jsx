@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth.jsx';
 import { usePlan, todaysWorkout } from '../hooks/usePlan.js';
 import { useI18n } from '../i18n/index.jsx';
 import { api } from '../lib/api.js';
+import { cacheGet, cacheSet } from '../lib/cache.js';
 import { getDisplay } from '../lib/exercises.js';
 
 /**
@@ -19,12 +20,19 @@ export default function Home() {
   const { t, pick } = useI18n();
   const { isSignedIn, profile } = useAuth();
   const { plan, position, loading, fromCache } = usePlan();
-  const [stats, setStats] = useState(null);
+  // Seed from cache so the stat cards show last-known values instantly on
+  // refresh, then revalidate in the background.
+  const [stats, setStats] = useState(() => cacheGet('progress'));
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!isSignedIn) return;
-    api.progress().then(setStats).catch(() => setStats(null));
+    api.progress()
+      .then((p) => {
+        setStats(p);
+        cacheSet('progress', p);
+      })
+      .catch(() => {});
   }, [isSignedIn]);
 
   const hour = new Date().getHours();

@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { api, setTokenGetter } from '../lib/api.js';
+import { cacheClearAll } from '../lib/cache.js';
 import { getSessionToken, sendMagicLink, signOut as sbSignOut, supabase, supabaseEnabled } from '../lib/supabase.js';
 
 /**
@@ -18,6 +19,23 @@ import { getSessionToken, sendMagicLink, signOut as sbSignOut, supabase, supabas
 
 const DEV_TOKEN_KEY = 'gympad.devToken';
 const AuthContext = createContext(null);
+
+/** Map a Supabase session's user to our shape — pure, no network. */
+function userFromSession(session) {
+  const u = session.user;
+  return {
+    id: u.id,
+    email: u.email ?? null,
+    name: u.user_metadata?.display_name || (u.email ? u.email.split('@')[0] : 'Athlete'),
+    lang: u.user_metadata?.lang || 'en',
+  };
+}
+
+/** A good-enough profile to render immediately; the real one loads behind it. */
+function optimisticProfile(session) {
+  const u = userFromSession(session);
+  return { id: u.id, display_name: u.name, lang: u.lang };
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -50,21 +68,33 @@ export function AuthProvider({ children }) {
   }, []);
 
   // Boot: restore an existing session if there is one.
+  //
+  // Speed matters here more than anywhere else — this runs on every page load
+  // and refresh. The key move is OPTIMISTIC restore: the Supabase session lives
+  // in localStorage, so we can read it and render the authenticated app in a few
+  // milliseconds, then refine the full profile from the backend in the
+  // background. Previously we awaited `api.me()` before rendering, so a cold
+  // free-tier backend meant a 30–60s full-screen spinner on every refresh.
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       if (supabaseEnabled) {
-        const { data } = await supabase.auth.getSession();
-        if (data?.session) await loadProfile();
-      } else if (devTokenRef.current) {
-        const ok = await loadProfile();
-        // A stale dev token (server restarted, memory wiped) must be cleared or
-        // the user is stuck on a spinner forever.
-        if (!ok) {
-          devTokenRef.current = null;
-          window.localStorage.removeItem(DEV_TOKEN_KEY);
+        const { data } = await supabase.auth.getSession(); // localStorage read, no network
+        if (!cancelled && data?.session) {
+          setUser(userFromSession(data.session));
+          setProfile(optimisticProfile(data.session));
+          loadProfile(); // background refine — deliberately not awaited
         }
+      } else if (devTokenRef.current) {
+        // Dev only (never runs in production). Verify in the background; clear a
+        // stale token if the in-memory server was restarted.
+        loadProfile().then((ok) => {
+          if (!ok && !cancelled) {
+            devTokenRef.current = null;
+            window.localStorage.removeItem(DEV_TOKEN_KEY);
+          }
+        });
       }
       if (!cancelled) setLoading(false);
     })();
@@ -111,6 +141,7 @@ export function AuthProvider({ children }) {
       devTokenRef.current = null;
       window.localStorage.removeItem(DEV_TOKEN_KEY);
     }
+    cacheClearAll(); // don't leave one user's plan/stats for the next on a shared device
     setUser(null);
     setProfile(null);
     setMagicLinkSentTo(null);
