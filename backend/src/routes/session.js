@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { asyncHandler } from '../util/http.js';
 import { requireAuth } from '../middleware/auth.js';
 import { byId } from '../services/exercises.js';
 import { computeProgress } from './progress.js';
@@ -13,7 +14,7 @@ import { computeProgress } from './progress.js';
 
 export const sessionRouter = Router();
 
-sessionRouter.post('/log', requireAuth, async (req, res) => {
+sessionRouter.post('/log', requireAuth, asyncHandler(async (req, res) => {
   const body = req.body ?? {};
 
   const durationMin = Number(body.durationMin);
@@ -53,7 +54,7 @@ sessionRouter.post('/log', requireAuth, async (req, res) => {
     weekMin: progress.weekMin,
     monthCount: progress.monthCount,
   });
-});
+}));
 
 function clampInt(v, lo, hi) {
   const n = Number(v);

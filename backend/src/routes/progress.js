@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { asyncHandler } from '../util/http.js';
 import { requireAuth } from '../middleware/auth.js';
 import { byId } from '../services/exercises.js';
 
@@ -13,10 +14,10 @@ import { byId } from '../services/exercises.js';
 
 export const progressRouter = Router();
 
-progressRouter.get('/', requireAuth, async (req, res) => {
+progressRouter.get('/', requireAuth, asyncHandler(async (req, res) => {
   const sessions = await req.db.getSessions({});
   res.json(computeProgress(sessions));
-});
+}));
 
 const DAY_MS = 86_400_000;
 

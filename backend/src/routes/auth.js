@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { asyncHandler } from '../util/http.js';
 import { flags } from '../config.js';
 import { encodeDevToken, makeDevUser, requireAuth } from '../middleware/auth.js';
 import { rateLimit } from '../middleware/rateLimit.js';
@@ -42,15 +43,15 @@ authRouter.post('/dev', rateLimit({ name: 'auth-dev', max: 20, windowMs: 60_000 
   });
 });
 
-authRouter.get('/me', requireAuth, async (req, res) => {
+authRouter.get('/me', requireAuth, asyncHandler(async (req, res) => {
   const profile = await req.db.getProfile();
   res.json({
     user: { id: req.user.id, email: req.user.email, name: req.user.name },
     profile: profile ?? { id: req.user.id, display_name: req.user.name, lang: req.user.lang ?? 'en' },
   });
-});
+}));
 
-authRouter.patch('/me', requireAuth, async (req, res) => {
+authRouter.patch('/me', requireAuth, asyncHandler(async (req, res) => {
   const { display_name, lang } = req.body ?? {};
   const patch = {};
   if (typeof display_name === 'string' && display_name.trim()) {
@@ -61,4 +62,4 @@ authRouter.patch('/me', requireAuth, async (req, res) => {
 
   const profile = await req.db.upsertProfile(patch);
   res.json({ profile });
-});
+}));

@@ -9,6 +9,20 @@ import { progressRouter } from './routes/progress.js';
 import { coachRouter } from './routes/coach.js';
 import { EXERCISES } from './services/exercises.js';
 
+// ─── Last-resort process guards ──────────────────────────────────────────────
+//
+// The belt to asyncHandler's braces. If anything still slips through — a stray
+// rejection in a library, an event-emitter error — we log it and KEEP RUNNING.
+// A web server surviving a single unexpected error is far better than it
+// crash-looping on a free-tier host, taking every user down each time. The app
+// holds no critical in-memory state, so staying up is always the right call.
+process.on('unhandledRejection', (reason) => {
+  console.error('[unhandledRejection]', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err);
+});
+
 const app = express();
 
 // Render (and most PaaS) sit behind a proxy; without this `req.ip` is the

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { asyncHandler } from '../util/http.js';
 import { requireAuth } from '../middleware/auth.js';
 import { phaseBreakdown } from '../services/planEngine.js';
 
@@ -13,13 +14,13 @@ import { phaseBreakdown } from '../services/planEngine.js';
 
 export const planRouter = Router();
 
-planRouter.get('/active', requireAuth, async (req, res) => {
+planRouter.get('/active', requireAuth, asyncHandler(async (req, res) => {
   const plan = await req.db.getActivePlan();
   if (!plan) return res.json({ plan: null, position: null });
 
   const sessions = await req.db.getSessions({});
   res.json({ plan, position: locate(plan, sessions) });
-});
+}));
 
 /**
  * Work out which phase / week / day the user is on.

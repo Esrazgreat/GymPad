@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { asyncHandler } from '../util/http.js';
 import { requireAuth } from '../middleware/auth.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 import { AIRefused, AIUnavailable, aiEnabled, streamText } from '../services/anthropic.js';
@@ -131,7 +132,7 @@ coachRouter.post(
   '/chat',
   requireAuth,
   rateLimit({ name: 'coach', max: 20, windowMs: 10 * 60_000 }),
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     const { messages, lang } = req.body ?? {};
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: 'Say something to your coach.' });
@@ -213,7 +214,7 @@ coachRouter.post(
       send({ type: 'done' });
     }
     res.end();
-  },
+  }),
 );
 
 /**

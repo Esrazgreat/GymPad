@@ -62,9 +62,22 @@ export async function resolveUser(req) {
   return null;
 }
 
-/** Hard gate: 401 if not authenticated. Attaches req.user and req.db. */
+/**
+ * Hard gate: 401 if not authenticated. Attaches req.user and req.db.
+ *
+ * The try/catch matters: this runs on every protected request and calls out to
+ * Supabase to verify the token. A transient network error to Supabase would
+ * otherwise reject this async middleware and crash the process. We fail the one
+ * request with a 401, and the server stays up.
+ */
 export async function requireAuth(req, res, next) {
-  const user = await resolveUser(req);
+  let user;
+  try {
+    user = await resolveUser(req);
+  } catch (err) {
+    console.error('[auth] token verification failed:', err.message);
+    return res.status(401).json({ error: 'Could not verify your session. Please sign in again.' });
+  }
   if (!user) {
     return res.status(401).json({ error: 'Sign in to continue.' });
   }
@@ -75,10 +88,15 @@ export async function requireAuth(req, res, next) {
 
 /** Soft gate: attaches req.user/req.db if present, but never blocks. */
 export async function optionalAuth(req, _res, next) {
-  const user = await resolveUser(req);
-  if (user) {
-    req.user = user;
-    req.db = makeStore(user);
+  try {
+    const user = await resolveUser(req);
+    if (user) {
+      req.user = user;
+      req.db = makeStore(user);
+    }
+  } catch (err) {
+    // Optional auth never blocks — a verification hiccup just means "guest".
+    console.error('[auth] optional verification failed:', err.message);
   }
   next();
 }

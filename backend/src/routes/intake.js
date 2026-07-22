@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { asyncHandler } from '../util/http.js';
 import { requireAuth } from '../middleware/auth.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 import { analyzeIntake } from '../services/intakeAnalyzer.js';
@@ -88,7 +89,7 @@ intakeRouter.post(
   requireAuth,
   // Plan generation is the most expensive AI call in the app — bound it hard.
   rateLimit({ name: 'intake', max: 6, windowMs: 15 * 60_000 }),
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     const { errors, intake } = validate(req.body ?? {});
     if (errors) return res.status(400).json({ error: 'Please check your answers.', fields: errors });
 
@@ -145,5 +146,5 @@ intakeRouter.post(
       generatedBy: analysis.source,
       plan,
     });
-  },
+  }),
 );
