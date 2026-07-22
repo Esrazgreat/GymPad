@@ -29,7 +29,8 @@ function supabaseStore(user) {
 
   return {
     async getProfile() {
-      const { data } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      const { data, error } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      if (error) throw error;
       return data;
     },
 
@@ -62,13 +63,14 @@ function supabaseStore(user) {
     },
 
     async getLatestIntake() {
-      const { data } = await sb
+      const { data, error } = await sb
         .from('intakes')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
+      if (error) throw error;
       return data;
     },
 
@@ -87,7 +89,7 @@ function supabaseStore(user) {
     },
 
     async getActivePlan() {
-      const { data } = await sb
+      const { data, error } = await sb
         .from('plans')
         .select('*')
         .eq('user_id', user.id)
@@ -95,6 +97,7 @@ function supabaseStore(user) {
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
+      if (error) throw error;
       return data;
     },
 
@@ -114,7 +117,8 @@ function supabaseStore(user) {
         const since = new Date(Date.now() - sinceDays * 86_400_000).toISOString();
         q = q.gte('logged_at', since);
       }
-      const { data } = await q;
+      const { data, error } = await q;
+      if (error) throw error;
       return data ?? [];
     },
   };
