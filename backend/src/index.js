@@ -96,7 +96,10 @@ app.use((err, _req, res, _next) => {
   if (res.headersSent) return res.end();
   res.status(500).json({
     error: 'Something went wrong on our side. Please try again.',
-    ...(config.nodeEnv !== 'production' ? { detail: err.message } : {}),
+    // TEMP (diagnosing a prod-only failure): surface the underlying error so it
+    // can be seen without Render log access. Revert to dev-only once confirmed.
+    detail: err?.message,
+    code: err?.code,
   });
 });
 
